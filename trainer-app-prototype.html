@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitConnect - トレーナー管理アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            padding-bottom: 70px;
+        }
+        
+        .container {
+            max-width: 390px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* ヘッダー */
+        .header {
+            background-color: #4fc3f7;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .header-profile {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        
+        /* フォーム要素 */
+        .form-container {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4fc3f7;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #29b6f6;
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        /* ホーム画面 */
+        .home-content {
+            padding: 20px;
+        }
+        
+        .today-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .today-header h2 {
+            font-size: 24px;
+        }
+        
+        .calendar-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .task-card {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .task-icon.completed {
+            background-color: #4fc3f7;
+            color: white;
+        }
+        
+        .task-icon.pending {
+            background-color: #ffd54f;
+            color: white;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .task-detail {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* プログレスカード */
+        .progress-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .progress-card {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .progress-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4fc3f7;
+            margin-bottom: 5px;
+        }
+        
+        .progress-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* クライアント一覧 */
+        .client-list {
+            padding: 20px;
+        }
+        
+        .client-card {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .client-card:hover {
+            background-color: #e8e8e8;
+            transform: translateY(-2px);
+        }
+        
+        .client-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4fc3f7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .client-info {
+            flex: 1;
+        }
+        
+        .client-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .client-detail {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* ボトムナビゲーション */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            max-width: 390px;
+            margin: 0 auto;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item.active .nav-icon {
+            color: #4fc3f7;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background-color: #4fc3f7;
+            border-radius: 50%;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* FABメニュー */
+        .fab-menu {
+            position: fixed;
+            bottom: 160px;
+            right: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+        
+        .fab-menu.active {
+            display: flex;
+        }
+        
+        .fab-option {
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .fab-option:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* メッセージ画面 */
+        .message-screen {
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-list {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            background-color: #f0f0f0;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            max-width: 80%;
+        }
+        
+        .message.sent {
+            background-color: #4fc3f7;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message-input-container {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: #4fc3f7;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 350px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        /* タブ */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #4fc3f7;
+            border-bottom-color: #4fc3f7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ログイン画面 -->
+        <div class="screen active" id="login-screen">
+            <div class="header">
+                <h1>FitConnect</h1>
+            </div>
+            <div class="form-container">
+                <h2 style="text-align: center; margin-bottom: 30px;">トレーナーログイン</h2>
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" placeholder="trainer@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" placeholder="パスワード" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">ログイン</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="showScreen('signup-screen')" style="color: #4fc3f7;">新規登録はこちら</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- サインアップ画面 -->
+        <div class="screen" id="signup-screen">
+            <div class="header">
+                <h1>アカウント作成</h1>
+            </div>
+            <div class="form-container">
+                <form onsubmit="signup(event)">
+                    <div class="form-group">
+                        <label>お名前</label>
+                        <input type="text" placeholder="山田 太郎" required>
+                    </div>
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" placeholder="trainer@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" placeholder="8文字以上" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">アカウント作成</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="showScreen('login-screen')" style="color: #4fc3f7;">ログインに戻る</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- クライアント登録画面 -->
+        <div class="screen" id="client-register-screen">
+            <div class="header">
+                <h1>クライアント登録</h1>
+            </div>
+            <div class="form-container">
+                <form onsubmit="registerClient(event)">
+                    <div class="form-group">
+                        <label>ニックネーム</label>
+                        <input type="text" placeholder="田中さん" required>
+                    </div>
+                    <div class="form-group">
+                        <label>生年月日</label>
+                        <input type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>身長 (cm)</label>
+                        <input type="number" placeholder="170" required>
+                    </div>
+                    <div class="form-group">
+                        <label>体重 (kg)</label>
+                        <input type="number" placeholder="70" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>アクティビティレベル</label>
+                        <select required>
+                            <option value="">選択してください</option>
+                            <option value="sedentary">座りがち（ほとんど運動しない）</option>
+                            <option value="light">軽い活動（週1-3日の軽い運動）</option>
+                            <option value="moderate">適度な活動（週3-5日の運動）</option>
+                            <option value="active">活発（週6-7日の運動）</option>
+                            <option value="very-active">非常に活発（激しい運動毎日）</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">登録</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ホーム画面 -->
+        <div class="screen" id="home-screen">
+            <div class="header">
+                <h1>ホーム</h1>
+                <div class="header-profile" onclick="showScreen('message-screen')">DM</div>
+            </div>
+            <div class="home-content">
+                <div class="today-header">
+                    <h2>今日のタスク</h2>
+                    <button class="calendar-btn">📅</button>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-icon completed">✓</div>
+                    <div class="task-info">
+                        <div class="task-title">田中さん - トレーニング完了</div>
+                        <div class="task-detail">上半身トレーニング 60分</div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-icon pending">!</div>
+                    <div class="task-info">
+                        <div class="task-title">佐藤さん - 予約確認</div>
+                        <div class="task-detail">19:00 パーソナルトレーニング</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">クライアント</h3>
+                <div class="client-card" onclick="showClientDetail()">
+                    <div class="client-avatar">田中</div>
+                    <div class="client-info">
+                        <div class="client-name">田中 健太</div>
+                        <div class="client-detail">目標: 筋力向上 | 週3回</div>
+                    </div>
+                </div>
+                
+                <div class="client-card">
+                    <div class="client-avatar">佐藤</div>
+                    <div class="client-info">
+                        <div class="client-name">佐藤 美香</div>
+                        <div class="client-detail">目標: ダイエット | 週2回</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" style="margin-top: 20px;" onclick="showScreen('client-register-screen')">
+                    + 新規クライアント追加
+                </button>
+            </div>
+        </div>
+
+        <!-- プログラム画面 -->
+        <div class="screen" id="program-screen">
+            <div class="header">
+                <h1>プログラム</h1>
+            </div>
+            <div class="form-container">
+                <div class="tabs">
+                    <div class="tab active">マイワークアウト</div>
+                    <div class="tab">マイプログラム</div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">初心者向け全身トレーニング</div>
+                        <div class="task-detail">所要時間: 45分 | 7エクササイズ</div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">上半身集中プログラム</div>
+                        <div class="task-detail">所要時間: 60分 | 10エクササイズ</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" style="margin-top: 20px;">
+                    + 新規プログラム作成
+                </button>
+            </div>
+        </div>
+
+        <!-- ライブラリ画面 -->
+        <div class="screen" id="library-screen">
+            <div class="header">
+                <h1>ライブラリ</h1>
+            </div>
+            <div class="form-container">
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">筋トレの基礎知識</div>
+                        <div class="task-detail">15本の記事・動画</div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">栄養の基礎知識</div>
+                        <div class="task-detail">20本の記事・動画</div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">カロリー別レシピ</div>
+                        <div class="task-detail">50種類のレシピ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゴール/習慣画面 -->
+        <div class="screen" id="goals-screen">
+            <div class="header">
+                <h1>ゴール/習慣</h1>
+            </div>
+            <div class="form-container">
+                <h3>現在のゴール</h3>
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">体重65kgを目指す</div>
+                        <div class="task-detail">現在: 70kg | 達成率: 50%</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">習慣</h3>
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">毎日1万歩歩く</div>
+                        <div class="task-detail">連続: 7日間</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" style="margin-top: 20px;">
+                    + 新しいゴール/習慣を追加
+                </button>
+            </div>
+        </div>
+
+        <!-- 食事画面 -->
+        <div class="screen" id="meal-screen">
+            <div class="header">
+                <h1>食事管理</h1>
+            </div>
+            <div class="form-container">
+                <div class="progress-grid">
+                    <div class="progress-card">
+                        <div class="progress-value">1,850</div>
+                        <div class="progress-label">今日のカロリー</div>
+                    </div>
+                    <div class="progress-card">
+                        <div class="progress-value">125g</div>
+                        <div class="progress-label">タンパク質</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">今日の食事</h3>
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">朝食</div>
+                        <div class="task-detail">プロテイン、バナナ | 350kcal</div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-info">
+                        <div class="task-title">昼食</div>
+                        <div class="task-detail">鶏胸肉サラダ | 450kcal</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" style="margin-top: 20px;">
+                    + 食事を記録
+                </button>
+            </div>
+        </div>
+
+        <!-- メッセージ画面 -->
+        <div class="screen" id="message-screen">
+            <div class="header">
+                <h1>メッセージ</h1>
+            </div>
+            <div class="message-screen">
+                <div class="message-list">
+                    <div class="message">
+                        お疲れ様でした！今日のトレーニングはどうでしたか？
+                    </div>
+                    <div class="message sent">
+                        とても良かったです！ベンチプレスで新記録を出せました。
+                    </div>
+                    <div class="message">
+                        素晴らしい！その調子で頑張りましょう。明日は必ずストレッチをしてくださいね。
+                    </div>
+                </div>
+                <div class="message-input-container">
+                    <input type="text" class="message-input" placeholder="メッセージを入力...">
+                    <button class="send-btn">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ボトムナビゲーション -->
+        <div class="bottom-nav" id="bottom-nav">
+            <div class="nav-item active" onclick="navigateTo('home')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">ホーム</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('program')">
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">プログラム</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('library')">
+                <div class="nav-icon">📚</div>
+                <div class="nav-label">ライブラリ</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('goals')">
+                <div class="nav-icon">🎯</div>
+                <div class="nav-label">ゴール</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('meal')">
+                <div class="nav-icon">🍽️</div>
+                <div class="nav-label">食事</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('account')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-label">アカウント</div>
+            </div>
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" id="fab" onclick="toggleFabMenu()">+</button>
+        <div class="fab-menu" id="fab-menu">
+            <div class="fab-option" onclick="addTask('workout')">ワークアウト</div>
+            <div class="fab-option" onclick="addTask('activity')">アクティビティ</div>
+            <div class="fab-option" onclick="addTask('photo')">写真</div>
+            <div class="fab-option" onclick="addTask('message')">自動メッセージ</div>
+        </div>
+
+        <!-- タスク追加モーダル -->
+        <div class="modal" id="task-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>タスク追加</h3>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
+                <form onsubmit="saveTask(event)">
+                    <div class="form-group">
+                        <label>クライアント選択</label>
+                        <select required>
+                            <option value="">選択してください</option>
+                            <option value="tanaka">田中 健太</option>
+                            <option value="sato">佐藤 美香</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>日時設定</label>
+                        <input type="datetime-local" required>
+                    </div>
+                    <div class="form-group" id="task-details">
+                        <!-- タスクタイプに応じて動的に内容を変更 -->
+                    </div>
+                    <button type="submit" class="btn btn-primary">追加</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'login-screen';
+        let fabOpen = false;
+        let currentTaskType = '';
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            
+            // ボトムナビゲーションとFABの表示制御
+            const showNav = !['login-screen', 'signup-screen', 'client-register-screen'].includes(screenId);
+            document.getElementById('bottom-nav').style.display = showNav ? 'flex' : 'none';
+            document.getElementById('fab').style.display = showNav ? 'block' : 'none';
+            
+            // FABメニューを閉じる
+            closeFabMenu();
+        }
+
+        function login(

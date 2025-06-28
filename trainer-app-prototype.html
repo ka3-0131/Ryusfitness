@@ -864,4 +864,84 @@
             closeFabMenu();
         }
 
-        function login(
+        function login(event) {
+            event.preventDefault();
+            showScreen('home-screen');
+        }
+
+        function signup(event) {
+            event.preventDefault();
+            showScreen('login-screen');
+        }
+
+        function registerClient(event) {
+            event.preventDefault();
+            showScreen('home-screen');
+        }
+
+        function navigateTo(target) {
+            const screens = {
+                home: 'home-screen',
+                program: 'program-screen',
+                library: 'library-screen',
+                goals: 'goals-screen',
+                meal: 'meal-screen',
+                account: 'message-screen'
+            };
+            const screenId = screens[target] || 'home-screen';
+            showScreen(screenId);
+
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            const indexMap = {home:0, program:1, library:2, goals:3, meal:4, account:5};
+            if (indexMap[target] !== undefined) {
+                navItems[indexMap[target]].classList.add('active');
+            }
+        }
+
+        function toggleFabMenu() {
+            fabOpen = !fabOpen;
+            document.getElementById('fab-menu').classList.toggle('active', fabOpen);
+        }
+
+        function closeFabMenu() {
+            fabOpen = false;
+            document.getElementById('fab-menu').classList.remove('active');
+        }
+
+        function addTask(type) {
+            currentTaskType = type;
+            openModal();
+        }
+
+        function openModal() {
+            document.getElementById('task-modal').classList.add('active');
+            const container = document.getElementById('task-details');
+            container.innerHTML = '';
+            if (currentTaskType === 'workout') {
+                container.innerHTML = '<label>ワークアウト内容</label><input type="text" required>';
+            } else if (currentTaskType === 'activity') {
+                container.innerHTML = '<label>アクティビティ内容</label><input type="text" required>';
+            } else if (currentTaskType === 'photo') {
+                container.innerHTML = '<label>写真URL</label><input type="url">';
+            } else if (currentTaskType === 'message') {
+                container.innerHTML = '<label>メッセージ</label><textarea required></textarea>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('task-modal').classList.remove('active');
+        }
+
+        function saveTask(event) {
+            event.preventDefault();
+            closeModal();
+            alert('タスクが追加されました');
+        }
+
+        function showClientDetail() {
+            alert('クライアント詳細画面は未実装です');
+        }
+    </script>
+</body>
+</html>
